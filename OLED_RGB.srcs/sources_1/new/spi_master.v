@@ -41,10 +41,12 @@ module spi_master(
             oled_cs <= 1; // Active low, 1 = idle
             oled_sdin <= 0;
             bit_count <= 0;
+            status <= 0;
         end  
         
         // initializing the spi master when a request is recieved 
         else if (start == 1 && oled_cs == 1) begin // oled driver sends a request while master is idle
+            status <= 1; // about to be busy
             oled_cs <= 0; // activate the peripheral
             bit_count <= 0; // ready the bit counter
             counter <= 0; 
@@ -61,6 +63,7 @@ module spi_master(
                 if (oled_sclk == 1) begin // this was the HIGH state, about to go LOW
                     if (bit_count == 7) begin
                         oled_cs <= 1; // we just finished the 8th bit
+                        status <= 0; // no longer busy
                     end else begin
                         oled_sdin <= data_in[7 - (bit_count + 1)];
                         bit_count <= bit_count + 1;
